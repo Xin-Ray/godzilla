@@ -183,8 +183,9 @@ namespace Godzilla.Editor
             depth.enabled = false;
             depthGo.SetActive(false); // its Awake logs an error without an XR provider (editor); WindowCalibration activates it on demand
 
-            // --- character placeholder (replaced by the Mixamo rig in Task 12)
-            var character = BuildPlaceholderCharacter();
+            // --- character: rigged humanoid if present, else capsule placeholder
+            var character = BuildRiggedCharacter() ?? BuildPlaceholderCharacter();
+            var giantAnim = character.GetComponent<Godzilla.Character.GiantAnimationController>();
 
             // --- components on App
             var city = app.AddComponent<Godzilla.Core.CitySpaceManager>();
@@ -211,6 +212,59 @@ namespace Godzilla.Editor
 
             var sim = app.AddComponent<Godzilla.Sim.EditorSimRig>();
             sim.Configure(head, input);
+
+            if (giantAnim != null)
+            {
+                var giantCtrl = app.AddComponent<Godzilla.Character.GiantCharacterController>();
+                giantCtrl.Configure(flow, placement, giantAnim);
+                giantAnim.Configure(character.GetComponentInChildren<Animator>(), giantCtrl);
+                dev.ConfigureGiant(giantCtrl, giantAnim);
+            }
+        }
+
+        static void Log(string msg) => Debug.Log($"[Bootstrap] {msg}");
+        public const string RiggedBodyPath = "Assets/Characters/Placeholder/RoomAssistantChar.fbx";
+        public const string YBotPath = "Assets/Characters/Placeholder/YBot.fbx";
+
+        /// <summary>Instantiates the Humanoid body (Y Bot preferred) with the generated Animator Controller. Null when no body/controller exists.</summary>
+        static GameObject BuildRiggedCharacter()
+        {
+            var bodyPath = AssetDatabase.LoadAssetAtPath<GameObject>(YBotPath) != null ? YBotPath : RiggedBodyPath;
+            var body = AssetDatabase.LoadAssetAtPath<GameObject>(bodyPath);
+            if (body == null) { Log("no rigged body found; using capsule placeholder"); return null; }
+
+            GiantAnimatorBuilder.Build();
+            var controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(GiantAnimatorBuilder.ControllerPath);
+            if (controller == null) { Log("animator controller missing; using capsule placeholder"); return null; }
+
+            var root = new GameObject("Giant");
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(body);
+            inst.name = "Body";
+            inst.transform.SetParent(root.transform, false);
+            // normalise to a 1.8 m tall body with feet at the root origin
+            var renderers = inst.GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
+            {
+                var b = renderers[0].bounds;
+                foreach (var r in renderers) b.Encapsulate(r.bounds);
+                float h = Mathf.Max(0.01f, b.size.y);
+                float s = 1.8f / h;
+                inst.transform.localScale = Vector3.one * s;
+                inst.transform.localPosition = new Vector3(-b.center.x * s, -b.min.y * s, -b.center.z * s);
+                Log($"rigged body {System.IO.Path.GetFileName(bodyPath)} height={h:0.00} m → scaled {s:0.000}");
+            }
+            var mat = Material(GiantMatPath, "Universal Render Pipeline/Lit", new Color(0.85f, 0.85f, 0.9f));
+            mat.SetColor("_EmissionColor", Color.white * 0.6f);
+            mat.EnableKeyword("_EMISSION");
+            foreach (var r in renderers) r.sharedMaterials = Enumerable.Repeat(mat, r.sharedMaterials.Length).ToArray();
+
+            var animator = inst.GetComponent<Animator>() ?? inst.AddComponent<Animator>();
+            animator.runtimeAnimatorController = controller;
+            animator.applyRootMotion = false;
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            // On the root so Compose can fetch it with GetComponent on the character root.
+            root.AddComponent<Godzilla.Character.GiantAnimationController>();
+            return root;
         }
 
         static GameObject BuildPlaceholderCharacter()

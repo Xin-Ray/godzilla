@@ -29,8 +29,29 @@ namespace Godzilla.UI
             head = headAnchor; window = w; placement = p; app = flow;
         }
 
-        /// <summary>Task 12 adds animation test rows here.</summary>
-        public void AddRows(IEnumerable<MenuRow> rows) { _extraRows.AddRange(rows); Rebuild(); }
+        /// <summary>Extra rows appended after the standard ones.</summary>
+        public void AddRows(IEnumerable<MenuRow> rows) { _extraRows.AddRange(rows); if (_panel != null) Rebuild(); }
+
+        Godzilla.Character.GiantCharacterController _giant;
+        Godzilla.Character.GiantAnimationController _giantAnim;
+
+        /// <summary>Animation test buttons (spec: Idle/Walk/Run/Jump/Punch/Kick/Roar/Reset + Current State).</summary>
+        public void ConfigureGiant(Godzilla.Character.GiantCharacterController giant, Godzilla.Character.GiantAnimationController giantAnim)
+        {
+            _giant = giant; _giantAnim = giantAnim;
+            AddRows(new[]
+            {
+                MenuRow.Text("— Animation test —"),
+                MenuRow.Button("Idle", () => _giantAnim.Apply(0f, true, Godzilla.Character.GiantAction.None, placement.Data.animTimeScale)),
+                MenuRow.Button("Walk", () => _giantAnim.Apply(0.5f, true, Godzilla.Character.GiantAction.None, placement.Data.animTimeScale)),
+                MenuRow.Button("Run", () => _giantAnim.Apply(1f, true, Godzilla.Character.GiantAction.None, placement.Data.animTimeScale)),
+                MenuRow.Button("Jump", () => _giant.DebugAction(Godzilla.Character.GiantAction.Jump)),
+                MenuRow.Button("Punch", () => _giant.DebugAction(Godzilla.Character.GiantAction.Punch)),
+                MenuRow.Button("Kick", () => _giant.DebugAction(Godzilla.Character.GiantAction.Kick)),
+                MenuRow.Button("Roar", () => _giant.DebugAction(Godzilla.Character.GiantAction.Roar)),
+                MenuRow.Button("Reset (re-apply placement)", () => { placement.Apply(placement.Data); _giant.SyncFromPlacement(); }),
+            });
+        }
 
         void Awake()
         {
@@ -57,7 +78,7 @@ namespace Godzilla.UI
                 ForcedModeRow(),
                 MenuRow.Button("Re-calibrate now", () => app.Recalibrate()),
                 MenuRow.Button("Save placement", () => placement.Save()),
-                MenuRow.Text("Anim state", () => CurrentStateText),
+                MenuRow.Text("Anim state", () => _giantAnim != null ? _giantAnim.CurrentStateName : CurrentStateText),
             };
             rows.AddRange(_extraRows);
             _panel.SetRows("DEV", rows);

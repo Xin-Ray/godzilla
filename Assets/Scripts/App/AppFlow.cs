@@ -64,10 +64,13 @@ namespace Godzilla.App
             if (s == AppState.LoadingRoom) window.Calibrate();
         }
 
+        /// <summary>Tests / scripted demos: when set, replaces the device input for every frame until cleared.</summary>
+        public InputFrame? InputOverride { get; set; }
+
         void Update()
         {
             if (input == null) return;
-            var i = input.Current;
+            var i = InputOverride ?? input.Current;
             float dt = Time.deltaTime;
 
             if (i.MenuHeld1s && devPanel != null) devPanel.Toggle();
