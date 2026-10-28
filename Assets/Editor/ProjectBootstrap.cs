@@ -145,12 +145,127 @@ namespace Godzilla.Editor
         static void Log(string msg) => Debug.Log($"[Bootstrap] {msg}");
     }
 
-    /// <summary>Later tasks register the App-root components here so the scene stays reproducible.</summary>
+    /// <summary>Composes the App root: MRUK + occluder, calibration, placement, input, flow, UI, sim rig, character.</summary>
     public static class SceneComposer
     {
+        public const string OccluderMatPath = "Assets/Materials/DepthOnlyOccluder.mat";
+        public const string OccluderDebugMatPath = "Assets/Materials/OccluderDebug.mat";
+        public const string GiantMatPath = "Assets/Materials/GiantPlaceholder.mat";
+        public const string InputAssetPath = "Assets/Input/GiantControls.inputactions";
+        public const string SimRoomPrefab = "Packages/com.meta.xr.mrutilitykit/Core/Rooms/Prefabs/Bedroom/Bedroom00.prefab";
+
         public static void Compose(GameObject app, GameObject cameraRig)
         {
-            // Task 3+: MRUK, EffectMesh, EnvironmentDepthManager, CitySpaceManager, WindowCalibration, ...
+            // OVRCameraRig only resolves its anchor properties at runtime; find them by path in edit mode.
+            var head = cameraRig.transform.Find("TrackingSpace/CenterEyeAnchor");
+            var rightHand = cameraRig.transform.Find("TrackingSpace/RightHandAnchor");
+            if (head == null || rightHand == null) throw new Exception("OVRCameraRig anchors not found");
+
+            // --- MRUK + occluder + depth
+            var mrukGo = new GameObject("MRUK");
+            var mruk = mrukGo.AddComponent<Meta.XR.MRUtilityKit.MRUK>();
+            if (mruk.SceneSettings == null) mruk.SceneSettings = new Meta.XR.MRUtilityKit.MRUK.MRUKSettings();
+            mruk.SceneSettings.DataSource = Meta.XR.MRUtilityKit.MRUK.SceneDataSource.DeviceWithPrefabFallback;
+            mruk.SceneSettings.LoadSceneOnStartup = true;
+            mruk.SceneSettings.RoomIndex = 0;
+            var simRoom = AssetDatabase.LoadAssetAtPath<GameObject>(SimRoomPrefab);
+            if (simRoom == null) throw new Exception($"missing {SimRoomPrefab}");
+            mruk.SceneSettings.RoomPrefabs = new[] { simRoom };
+
+            var effect = mrukGo.AddComponent<Meta.XR.MRUtilityKit.EffectMesh>();
+            effect.SpawnOnStart = Meta.XR.MRUtilityKit.MRUK.RoomFilter.None; // WindowCalibration builds it
+            effect.Labels = Meta.XR.MRUtilityKit.MRUKAnchor.SceneLabels.WALL_FACE | Meta.XR.MRUtilityKit.MRUKAnchor.SceneLabels.CEILING | Meta.XR.MRUtilityKit.MRUKAnchor.SceneLabels.FLOOR;
+            effect.CutHoles = Meta.XR.MRUtilityKit.MRUKAnchor.SceneLabels.WINDOW_FRAME | Meta.XR.MRUtilityKit.MRUKAnchor.SceneLabels.DOOR_FRAME;
+            effect.MeshMaterial = Material(OccluderMatPath, "Godzilla/DepthOnlyOccluder", Color.white);
+
+            var depthGo = new GameObject("EnvironmentDepth");
+            var depth = depthGo.AddComponent<Meta.XR.EnvironmentDepth.EnvironmentDepthManager>();
+            depth.enabled = false;
+            depthGo.SetActive(false); // its Awake logs an error without an XR provider (editor); WindowCalibration activates it on demand
+
+            // --- character placeholder (replaced by the Mixamo rig in Task 12)
+            var character = BuildPlaceholderCharacter();
+
+            // --- components on App
+            var city = app.AddComponent<Godzilla.Core.CitySpaceManager>();
+            var window = app.AddComponent<Godzilla.Core.WindowCalibration>();
+            var debugMat = Material(OccluderDebugMatPath, "Universal Render Pipeline/Unlit", new Color(0f, 1f, 1f, 0.3f), transparent: true);
+            window.Configure(city, effect, depth, effect.MeshMaterial, debugMat, head);
+
+            var placement = app.AddComponent<Godzilla.Placement.CharacterPlacement>();
+            placement.Configure(city, character.transform, 1.8f);
+
+            var input = app.AddComponent<Godzilla.Input.GiantInput>();
+            var actions = AssetDatabase.LoadAssetAtPath<UnityEngine.InputSystem.InputActionAsset>(InputAssetPath);
+            if (actions == null) throw new Exception($"missing {InputAssetPath}");
+            input.Configure(actions, head, rightHand);
+
+            var flow = app.AddComponent<Godzilla.App.AppFlow>();
+            var hudGo = new GameObject("PlayerHud");
+            var hud = hudGo.AddComponent<Godzilla.UI.PlayerHud>();
+            hud.Configure(head, flow);
+            var devGo = new GameObject("DevPanel");
+            var dev = devGo.AddComponent<Godzilla.UI.DevPanel>();
+            dev.Configure(head, window, placement, flow);
+            flow.Configure(input, window, placement, hud, dev);
+
+            var sim = app.AddComponent<Godzilla.Sim.EditorSimRig>();
+            sim.Configure(head, input);
+        }
+
+        static GameObject BuildPlaceholderCharacter()
+        {
+            // 1.8 m tall stack: body capsule + head sphere + two arm capsules. Root pivot at the feet.
+            var root = new GameObject("Giant");
+            var mat = Material(GiantMatPath, "Universal Render Pipeline/Lit", new Color(0.85f, 0.85f, 0.9f));
+            mat.SetColor("_EmissionColor", Color.white * 0.6f);
+            mat.EnableKeyword("_EMISSION");
+
+            Part(root, PrimitiveType.Capsule, "Body", new Vector3(0, 0.95f, 0), new Vector3(0.5f, 0.55f, 0.3f), mat);
+            Part(root, PrimitiveType.Sphere, "Head", new Vector3(0, 1.62f, 0), new Vector3(0.32f, 0.32f, 0.32f), mat);
+            Part(root, PrimitiveType.Capsule, "ArmL", new Vector3(-0.38f, 1.05f, 0), new Vector3(0.14f, 0.35f, 0.14f), mat);
+            Part(root, PrimitiveType.Capsule, "ArmR", new Vector3(0.38f, 1.05f, 0), new Vector3(0.14f, 0.35f, 0.14f), mat);
+            Part(root, PrimitiveType.Capsule, "LegL", new Vector3(-0.13f, 0.4f, 0), new Vector3(0.18f, 0.42f, 0.18f), mat);
+            Part(root, PrimitiveType.Capsule, "LegR", new Vector3(0.13f, 0.4f, 0), new Vector3(0.18f, 0.42f, 0.18f), mat);
+            return root;
+        }
+
+        static void Part(GameObject root, PrimitiveType type, string name, Vector3 pos, Vector3 scale, Material mat)
+        {
+            var p = GameObject.CreatePrimitive(type);
+            UnityEngine.Object.DestroyImmediate(p.GetComponent<Collider>());
+            p.name = name;
+            p.transform.SetParent(root.transform, false);
+            p.transform.localPosition = pos;
+            p.transform.localScale = scale;
+            p.GetComponent<Renderer>().sharedMaterial = mat;
+        }
+
+        static Material Material(string path, string shaderName, Color color, bool transparent = false)
+        {
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var shader = Shader.Find(shaderName);
+            if (shader == null) throw new Exception($"shader not found: {shaderName}");
+            if (mat == null)
+            {
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+                mat = new Material(shader);
+                AssetDatabase.CreateAsset(mat, path);
+            }
+            mat.shader = shader;
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
+            if (transparent)
+            {
+                mat.SetFloat("_Surface", 1f); // URP transparent
+                mat.SetFloat("_Blend", 0f);
+                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                mat.SetInt("_ZWrite", 1);
+                mat.renderQueue = 2999;
+                mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
+            EditorUtility.SetDirty(mat);
+            return mat;
         }
     }
 }

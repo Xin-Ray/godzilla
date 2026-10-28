@@ -103,10 +103,10 @@
 - Test: `Assets/Tests/EditMode/InputActionsAssetTests.cs`
 
 **Interfaces:**
-- Produces: `struct InputFrame { Vector2 Move, Turn; bool Run, JumpPressed, PunchPressed, KickPressed, RoarPressed, MenuPressed, MenuHeld1s, PlaceDragHeld, ConfirmPressed; Ray RightAimRay; Vector3 HeadPos, HeadFwd }`. `class PlayerInput : MonoBehaviour { InputFrame Current; }` reading the action map `Giant` exactly as in the spec table (XR + keyboard bindings), `Pressed` = `WasPressedThisFrame`, aim ray from `RightHandAnchor` (OVRCameraRig) or, in sim, the camera.
+- Produces: `struct InputFrame { Vector2 Move, Turn; bool Run, JumpPressed, PunchPressed, KickPressed, RoarPressed, MenuPressed, MenuHeld1s, PlaceDragHeld, ConfirmPressed; Ray RightAimRay; Vector3 HeadPos, HeadFwd }`. `class GiantInput : MonoBehaviour { InputFrame Current; }` (renamed from PlayerInput: clashes with UnityEngine.InputSystem.PlayerInput) reading the action map `Giant` exactly as in the spec table (XR + keyboard bindings), `Pressed` = `WasPressedThisFrame`, aim ray from `RightHandAnchor` (OVRCameraRig) or, in sim, the camera.
 
 - [ ] **Step 1:** Test: load the `.inputactions` asset via `AssetDatabase`, assert actions `Move, Turn, Jump, Punch, Kick, Roar, Run, Menu, PlaceDrag, Confirm` exist and `Jump` has a binding containing `primaryButton` and one containing `<Keyboard>/space`.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Author the asset JSON + `PlayerInput`. **Step 4:** Run → PASS. **Step 5:** Commit `feat(input): Touch + keyboard action map`.
+- [ ] **Step 2:** Run → FAIL. **Step 3:** Author the asset JSON + `GiantInput`. **Step 4:** Run → PASS. **Step 5:** Commit `feat(input): Touch + keyboard action map`.
 
 ### Task 5: Character placement
 
