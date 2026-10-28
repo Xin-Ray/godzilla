@@ -1,7 +1,7 @@
 # Handoff
 
 - Handoff type: **DEVICE** — editor halves pass; every Quest 3 row is READY_FOR_DEVICE (never run on the headset yet).
-- Build: `Builds/Godzilla.apk` from commit on `main` dated 2026-10-28 (see `logs/build_quest.log` for the exact size/time). App id `com.xin.godzilla`.
+- Build: `Builds/Godzilla.apk` (55.2 MB) from commit `f4a882a` on `main`, 2026-10-28 18:44. App id `com.xin.godzilla`. Suites at that commit: EditMode 65/65, PlayMode 8/8.
 - Device assumptions: Quest 3, Horizon OS with Space Setup done for the room (windows marked as **Window** if the scan tool offers it), Wi-Fi shared with the PC for wireless adb.
 - Evidence index: `docs/validation/evidence/T-MVP-003/` (parallax + occlusion PNGs), `docs/validation/evidence/T-MVP-010/` (locomotion frames + telemetry.txt). Device captures go under the same test IDs with a `device_` prefix.
 
