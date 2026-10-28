@@ -1,0 +1,76 @@
+{
+    "name": "GiantControls",
+    "maps": [
+        {
+            "name": "Giant",
+            "id": "6a9d2a8e-1c53-4a7e-9d5e-0c1a2b3c4d01",
+            "actions": [
+                { "name": "Move", "type": "Value", "id": "a0000000-0000-4000-8000-000000000001", "expectedControlType": "Vector2", "processors": "", "interactions": "", "initialStateCheck": true },
+                { "name": "Turn", "type": "Value", "id": "a0000000-0000-4000-8000-000000000002", "expectedControlType": "Vector2", "processors": "", "interactions": "", "initialStateCheck": true },
+                { "name": "Jump", "type": "Button", "id": "a0000000-0000-4000-8000-000000000003", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Punch", "type": "Button", "id": "a0000000-0000-4000-8000-000000000004", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Kick", "type": "Button", "id": "a0000000-0000-4000-8000-000000000005", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Roar", "type": "Button", "id": "a0000000-0000-4000-8000-000000000006", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Run", "type": "Button", "id": "a0000000-0000-4000-8000-000000000007", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": true },
+                { "name": "Menu", "type": "Button", "id": "a0000000-0000-4000-8000-000000000008", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "PlaceDrag", "type": "Button", "id": "a0000000-0000-4000-8000-000000000009", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": true },
+                { "name": "Confirm", "type": "Button", "id": "a0000000-0000-4000-8000-00000000000a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "HeadLook", "type": "Value", "id": "a0000000-0000-4000-8000-00000000000b", "expectedControlType": "Vector2", "processors": "", "interactions": "", "initialStateCheck": true },
+                { "name": "HeadMove", "type": "Value", "id": "a0000000-0000-4000-8000-00000000000c", "expectedControlType": "Vector2", "processors": "", "interactions": "", "initialStateCheck": true },
+                { "name": "HeadLookHold", "type": "Button", "id": "a0000000-0000-4000-8000-00000000000d", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": true }
+            ],
+            "bindings": [
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000101", "path": "<XRController>{LeftHand}/primary2DAxis", "interactions": "", "processors": "", "groups": "XR", "action": "Move", "isComposite": false, "isPartOfComposite": false },
+                { "name": "WASD", "id": "b0000000-0000-4000-8000-000000000102", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Move", "isComposite": true, "isPartOfComposite": false },
+                { "name": "up", "id": "b0000000-0000-4000-8000-000000000103", "path": "<Keyboard>/w", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Move", "isComposite": false, "isPartOfComposite": true },
+                { "name": "down", "id": "b0000000-0000-4000-8000-000000000104", "path": "<Keyboard>/s", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Move", "isComposite": false, "isPartOfComposite": true },
+                { "name": "left", "id": "b0000000-0000-4000-8000-000000000105", "path": "<Keyboard>/a", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Move", "isComposite": false, "isPartOfComposite": true },
+                { "name": "right", "id": "b0000000-0000-4000-8000-000000000106", "path": "<Keyboard>/d", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Move", "isComposite": false, "isPartOfComposite": true },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000201", "path": "<XRController>{RightHand}/primary2DAxis", "interactions": "", "processors": "", "groups": "XR", "action": "Turn", "isComposite": false, "isPartOfComposite": false },
+                { "name": "QE+Arrows", "id": "b0000000-0000-4000-8000-000000000202", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Turn", "isComposite": true, "isPartOfComposite": false },
+                { "name": "up", "id": "b0000000-0000-4000-8000-000000000203", "path": "<Keyboard>/upArrow", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Turn", "isComposite": false, "isPartOfComposite": true },
+                { "name": "down", "id": "b0000000-0000-4000-8000-000000000204", "path": "<Keyboard>/downArrow", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Turn", "isComposite": false, "isPartOfComposite": true },
+                { "name": "left", "id": "b0000000-0000-4000-8000-000000000205", "path": "<Keyboard>/q", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Turn", "isComposite": false, "isPartOfComposite": true },
+                { "name": "right", "id": "b0000000-0000-4000-8000-000000000206", "path": "<Keyboard>/e", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Turn", "isComposite": false, "isPartOfComposite": true },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000301", "path": "<XRController>{RightHand}/primaryButton", "interactions": "", "processors": "", "groups": "XR", "action": "Jump", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000302", "path": "<Keyboard>/space", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Jump", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000401", "path": "<XRController>{RightHand}/secondaryButton", "interactions": "", "processors": "", "groups": "XR", "action": "Punch", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000402", "path": "<Keyboard>/j", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Punch", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000501", "path": "<XRController>{LeftHand}/primaryButton", "interactions": "", "processors": "", "groups": "XR", "action": "Kick", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000502", "path": "<Keyboard>/k", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Kick", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000601", "path": "<XRController>{LeftHand}/secondaryButton", "interactions": "", "processors": "", "groups": "XR", "action": "Roar", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000602", "path": "<Keyboard>/l", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Roar", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000701", "path": "<XRController>{LeftHand}/trigger", "interactions": "", "processors": "", "groups": "XR", "action": "Run", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000702", "path": "<Keyboard>/leftShift", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Run", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000801", "path": "<XRController>{LeftHand}/menu", "interactions": "", "processors": "", "groups": "XR", "action": "Menu", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000802", "path": "<Keyboard>/escape", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Menu", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000901", "path": "<XRController>{RightHand}/trigger", "interactions": "", "processors": "", "groups": "XR", "action": "PlaceDrag", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000902", "path": "<Mouse>/leftButton", "interactions": "", "processors": "", "groups": "Keyboard", "action": "PlaceDrag", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000a01", "path": "<XRController>{RightHand}/primaryButton", "interactions": "", "processors": "", "groups": "XR", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000a02", "path": "<Keyboard>/enter", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000a03", "path": "<Keyboard>/space", "interactions": "", "processors": "", "groups": "Keyboard", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000b01", "path": "<Mouse>/delta", "interactions": "", "processors": "", "groups": "Keyboard", "action": "HeadLook", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "b0000000-0000-4000-8000-000000000b02", "path": "<Mouse>/rightButton", "interactions": "", "processors": "", "groups": "Keyboard", "action": "HeadLookHold", "isComposite": false, "isPartOfComposite": false },
+                { "name": "TFGH", "id": "b0000000-0000-4000-8000-000000000c01", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "HeadMove", "isComposite": true, "isPartOfComposite": false },
+                { "name": "up", "id": "b0000000-0000-4000-8000-000000000c02", "path": "<Keyboard>/t", "interactions": "", "processors": "", "groups": "Keyboard", "action": "HeadMove", "isComposite": false, "isPartOfComposite": true },
+                { "name": "down", "id": "b0000000-0000-4000-8000-000000000c03", "path": "<Keyboard>/g", "interactions": "", "processors": "", "groups": "Keyboard", "action": "HeadMove", "isComposite": false, "isPartOfComposite": true },
+                { "name": "left", "id": "b0000000-0000-4000-8000-000000000c04", "path": "<Keyboard>/f", "interactions": "", "processors": "", "groups": "Keyboard", "action": "HeadMove", "isComposite": false, "isPartOfComposite": true },
+                { "name": "right", "id": "b0000000-0000-4000-8000-000000000c05", "path": "<Keyboard>/h", "interactions": "", "processors": "", "groups": "Keyboard", "action": "HeadMove", "isComposite": false, "isPartOfComposite": true }
+            ]
+        }
+    ],
+    "controlSchemes": [
+        { "name": "XR", "bindingGroup": "XR", "devices": [ { "devicePath": "<XRController>", "isOptional": false, "isOR": false } ] },
+        { "name": "Keyboard", "bindingGroup": "Keyboard", "devices": [ { "devicePath": "<Keyboard>", "isOptional": false, "isOR": false }, { "devicePath": "<Mouse>", "isOptional": true, "isOR": false } ] }
+    ]
+}

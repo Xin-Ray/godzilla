@@ -69,7 +69,7 @@
 | Menu | `{LeftHand}/menu` | Esc |
 | Place-drag(仅 Placement) | `{RightHand}/trigger` 按住 | 鼠标左键按住 |
 | Confirm(仅 Placement,复用 A) | `{RightHand}/primaryButton` | Space / Enter |
-| 编辑器模拟头部 | — | 右键拖动 = 视角,IJKL = 走动(测视差) |
+| 编辑器模拟头部 | — | 右键拖动 = 视角,TFGH = 走动(测视差;IJKL 与 J/K/L 攻击键冲突) |
 
 ### 编辑器模拟(EditorSimRig)
 - Play 时若 `XRSettings.isDeviceActive == false`:在 CenterEye 相机上启用鼠标视角 + IJKL 平移;背景黑色代替透视。
