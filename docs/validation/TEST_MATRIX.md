@@ -12,7 +12,7 @@ Device rows may only become PASS after a run on Xin's Quest 3 with image evidenc
 | T-MVP-005 | WallAsWindow fallback (DevPanel force mode) frames the facing wall as the window | Yes | READY_FOR_DEVICE | DevPanel → force WallAsWindow → recalibrate | Editor half PASS: SimRigTests.ForcedWallAsWindow — mode=WallAsWindow, facing wall key WALL_FACE:0.4,1.5,4.3, holes 2→3, state→Placement | 2026-10-28 editor |
 | T-MVP-006 | HeadFrame fallback (no room / forced) places character ahead with no occluder | Yes | READY_FOR_DEVICE | DevPanel → force HeadFrame → recalibrate | Editor half PASS: SimRigTests.ForcedHeadFrame — mode=HeadFrame, holes=0, frame forward=head yaw, origin under head | 2026-10-28 editor |
 | T-MVP-007 | EditMode unit suite green | Yes | PASS | tools\run_tests.ps1 -Platform EditMode | tools/run_tests.ps1 EditMode → 43/43 (TestResults/EditMode.xml); PlayMode → 4/4 | 2026-10-28 editor |
-| T-MVP-008 | Android APK builds headless | Yes | NOT_RUN | tools\build_quest.ps1 | | |
+| T-MVP-008 | Android APK builds headless | Yes | PASS | tools\build_quest.ps1 | tools/build_quest.ps1 -> Builds/Godzilla.apk 53.1 MB, result=Succeeded errors=0 warnings=4, 6m47s (logs/build_quest.log) | 2026-10-28 editor |
 | T-MVP-009 | Left stick moves character, right stick turns it, left trigger runs | Yes | NOT_RUN | Device: each input; logcat `[Giant]` + screencap | | |
 | T-MVP-010 | Walk/run ≥5-frame sequences and jump/punch/kick/roar ≥3-frame sequences judged frame by frame | Yes | NOT_RUN | run_tests.ps1 -Platform PlayMode -Filter Locomotion; then device | | |
 | T-MVP-011 | No visible foot sliding during walk/run (in-place clips + programmatic speed) | Yes | NOT_RUN | Frame sequence from T-MVP-010: stride vs displacement | | |
