@@ -1,0 +1,26 @@
+{
+  "name": "Godzilla.Editor",
+  "rootNamespace": "Godzilla.Editor",
+  "references": [
+    "Godzilla.Runtime",
+    "Oculus.VR",
+    "Oculus.VR.Editor",
+    "meta.xr.mrutilitykit",
+    "Meta.XR.EnvironmentDepth",
+    "Unity.XR.OpenXR",
+    "Unity.XR.OpenXR.Editor",
+    "Unity.XR.Management",
+    "Unity.XR.Management.Editor",
+    "Unity.InputSystem",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

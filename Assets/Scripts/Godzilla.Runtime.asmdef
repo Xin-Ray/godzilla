@@ -1,0 +1,23 @@
+{
+  "name": "Godzilla.Runtime",
+  "rootNamespace": "Godzilla",
+  "references": [
+    "Oculus.VR",
+    "meta.xr.mrutilitykit",
+    "Meta.XR.EnvironmentDepth",
+    "Unity.InputSystem",
+    "Unity.XR.OpenXR",
+    "Unity.XR.Management",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
