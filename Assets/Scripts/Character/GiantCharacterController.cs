@@ -30,11 +30,19 @@ namespace Godzilla.Character
         void OnEnable()
         {
             if (app != null) { app.PlayInput += OnPlayInput; app.StateChanged += OnStateChanged; }
+            if (placement != null) placement.Applied += OnPlacementApplied;
         }
 
         void OnDisable()
         {
             if (app != null) { app.PlayInput -= OnPlayInput; app.StateChanged -= OnStateChanged; }
+            if (placement != null) placement.Applied -= OnPlacementApplied;
+        }
+
+        /// <summary>DevPanel sliders / restore push the root directly; adopt that pose so the next Play frame does not revert it.</summary>
+        void OnPlacementApplied()
+        {
+            if (app != null && app.State == AppState.Play) SyncFromPlacement();
         }
 
         void OnStateChanged(AppState s)

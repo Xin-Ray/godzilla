@@ -1,6 +1,6 @@
 jump_0: pos=(-319.0, -108.6, 40.5) yaw=277 state=Idle grounded=False locked=False
-jump_1: pos=(-319.0, -93.7, 40.5) yaw=277 state=Jump grounded=False locked=False
-jump_1: pos=(-319.0, -93.8, 40.5) yaw=277 state=Jump grounded=False locked=False
+jump_1: pos=(-319.0, -93.0, 40.5) yaw=277 state=Jump grounded=False locked=False
+jump_1: pos=(-319.0, -93.1, 40.5) yaw=277 state=Jump grounded=False locked=False
 jump_2: pos=(-319.0, -120.0, 40.5) yaw=277 state=Jump grounded=True locked=False
 punch_0: pos=(-319.0, -120.0, 40.5) yaw=277 state=Jump grounded=True locked=True
 punch_1: pos=(-319.0, -120.0, 40.5) yaw=277 state=Punch grounded=True locked=True

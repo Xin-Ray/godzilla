@@ -17,6 +17,25 @@ namespace Godzilla.Placement
         public float animTimeScale = 0.35f;
         public string savedAtUtc = "";
 
+        public const int CurrentVersion = 1;
+
         public static PlacementData Default() => new PlacementData();
+
+        /// <summary>Clamp everything a hand-edited or corrupted file could break (0/negative/NaN scale, giant inside the room).</summary>
+        public PlacementData Sanitize()
+        {
+            var def = Default();
+            lateral = Finite(lateral, def.lateral);
+            distance = UnityEngine.Mathf.Clamp(Finite(distance, def.distance), 50f, 2000f);
+            yaw = UnityEngine.Mathf.Repeat(Finite(yaw, def.yaw), 360f);
+            heightMeters = UnityEngine.Mathf.Clamp(Finite(heightMeters, def.heightMeters), 30f, 200f);
+            groundDrop = UnityEngine.Mathf.Clamp(Finite(groundDrop, def.groundDrop), 0f, 1000f);
+            animTimeScale = UnityEngine.Mathf.Clamp(Finite(animTimeScale, def.animTimeScale), 0.1f, 1.5f);
+            anchorUuid = anchorUuid ?? "";
+            frameMode = frameMode ?? "";
+            return this;
+        }
+
+        static float Finite(float v, float fallback) => float.IsNaN(v) || float.IsInfinity(v) ? fallback : v;
     }
 }

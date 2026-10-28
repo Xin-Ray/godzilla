@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using Meta.XR.MRUtilityKit;
 using Meta.XR.EnvironmentDepth;
@@ -7,8 +9,10 @@ using Meta.XR.EnvironmentDepth;
 namespace Godzilla.Core
 {
     /// <summary>
-    /// Waits for the MRUK room, picks the window (or wall / head fallback), sets the CityFrame and builds the
-    /// depth-only occluder (walls + ceiling + floor with window/door holes). Re-run with Calibrate().
+    /// Owns the MRUK room load (device scan on hardware, the sim prefab in the editor), picks the window
+    /// (or wall / head fallback), sets the CityFrame and builds the depth-only occluder
+    /// (walls + ceiling + floor with window/door holes). Re-run with Calibrate().
+    /// A failed or timed-out device load lands in HeadFrame (no phantom prefab room on hardware).
     /// </summary>
     public class WindowCalibration : MonoBehaviour
     {
@@ -18,6 +22,11 @@ namespace Godzilla.Core
         [SerializeField] Material occluderMaterial;
         [SerializeField] Material occluderDebugMaterial;
         [SerializeField] Transform head;
+        [SerializeField] GameObject simRoomPrefab;          // editor only
+        [SerializeField] Renderer[] giantRenderers;          // Depth API material swap
+        [SerializeField] Material giantLitMaterial;
+        [SerializeField] Material giantOcclusionMaterial;
+        [SerializeField] float loadTimeoutSeconds = 20f;
 
         public FrameMode Mode { get; private set; } = FrameMode.HeadFrame;
         public string AnchorUuid { get; private set; } = "";
@@ -27,34 +36,69 @@ namespace Godzilla.Core
         public FrameMode? ForcedMode { get; set; }
         public bool OccluderDebug { get; private set; }
         public bool OccluderEnabled { get; private set; } = true;
+        public bool DepthApiOn { get; private set; }
         public event Action Calibrated;
 
-        bool _hooked;
-        MRUKAnchor _excludedWall;
+        Coroutine _loading;
 
         public void Configure(CitySpaceManager cityManager, EffectMesh effectMesh, EnvironmentDepthManager depthManager,
-            Material occluderMat, Material debugMat, Transform headAnchor)
+            Material occluderMat, Material debugMat, Transform headAnchor, GameObject simRoom,
+            Renderer[] giantRends, Material giantLit, Material giantOcclusion)
         {
-            city = cityManager; occluder = effectMesh; depth = depthManager; occluderMaterial = occluderMat; occluderDebugMaterial = debugMat; head = headAnchor;
+            city = cityManager; occluder = effectMesh; depth = depthManager; occluderMaterial = occluderMat; occluderDebugMaterial = debugMat;
+            head = headAnchor; simRoomPrefab = simRoom; giantRenderers = giantRends; giantLitMaterial = giantLit; giantOcclusionMaterial = giantOcclusion;
         }
 
         /// <summary>Start (or restart) calibration. Calls Calibrated when the frame is set.</summary>
         public void Calibrate()
         {
             Ready = false;
+            if (_loading != null) StopCoroutine(_loading);
+            _loading = StartCoroutine(LoadAndCalibrate());
+        }
+
+        IEnumerator LoadAndCalibrate()
+        {
             var mruk = MRUK.Instance;
-            if (mruk == null) { Debug.LogWarning("[Window] no MRUK in scene → HeadFrame"); Finish(null); return; }
-            if (mruk.GetCurrentRoom() != null) { Finish(mruk.GetCurrentRoom()); return; }
-            if (!_hooked)
+            if (mruk == null) { Debug.LogWarning("[Window] no MRUK in scene → HeadFrame"); Finish(null); yield break; }
+            if (mruk.GetCurrentRoom() != null) { Finish(mruk.GetCurrentRoom()); yield break; }
+
+            Task<MRUK.LoadDeviceResult> task;
+#if UNITY_EDITOR
+            if (simRoomPrefab == null) { Debug.LogWarning("[Window] editor: no sim room prefab → HeadFrame"); Finish(null); yield break; }
+            Debug.Log("[Window] editor: loading sim room prefab");
+            task = mruk.LoadSceneFromPrefab(simRoomPrefab);
+#else
+            Debug.Log("[Window] loading room from device…");
+            task = mruk.LoadSceneFromDevice();
+#endif
+            float t = 0f;
+            while (!task.IsCompleted && t < loadTimeoutSeconds) { t += Time.unscaledDeltaTime; yield return null; }
+            if (!task.IsCompleted)
             {
-                _hooked = true;
-                mruk.RegisterSceneLoadedCallback(() => { if (!Ready) Finish(MRUK.Instance.GetCurrentRoom()); });
+                Debug.LogWarning($"[Window] room load timed out after {loadTimeoutSeconds:0} s → HeadFrame");
+                Finish(null); yield break;
             }
-            Debug.Log("[Window] waiting for MRUK room…");
+            if (task.IsFaulted)
+            {
+                Debug.LogWarning($"[Window] room load failed: {task.Exception?.GetBaseException().Message} → HeadFrame");
+                Finish(null); yield break;
+            }
+            var result = task.Result;
+            MRUKRoom room = null;
+            if (result == MRUK.LoadDeviceResult.Success || result == MRUK.LoadDeviceResult.DiscoveryOngoing)
+            {
+                // MRUK may report before the room objects exist (prefab path returns DiscoveryOngoing); wait for GetCurrentRoom.
+                while (mruk.GetCurrentRoom() == null && t < loadTimeoutSeconds) { t += Time.unscaledDeltaTime; yield return null; }
+                room = mruk.GetCurrentRoom();
+            }
+            if (room == null) Debug.LogWarning($"[Window] room load result={result} after {t:0.0}s → HeadFrame");
+            Finish(room);
         }
 
         void Finish(MRUKRoom room)
         {
+            _loading = null;
             var planes = room != null ? CollectPlanes(room) : new List<PlaneCandidate>();
             var headRay = head != null ? new Ray(head.position, head.forward) : new Ray(Vector3.zero, Vector3.forward);
 
@@ -120,7 +164,6 @@ namespace Godzilla.Core
         void BuildOccluder(MRUKRoom room, PlaneCandidate? pick)
         {
             HoleCount = 0;
-            _excludedWall = null;
             if (occluder == null) return;
             occluder.DestroyMesh();
             if (room == null || Mode == FrameMode.HeadFrame || !OccluderEnabled) return;
@@ -141,7 +184,6 @@ namespace Godzilla.Core
                     var c = a.transform.TransformPoint(new Vector3(rect.center.x, rect.center.y, 0f));
                     if (AnchorKey(a, c) != pick.Value.Uuid) continue;
                     occluder.DestroyMesh(a);
-                    _excludedWall = a;
                     HoleCount++;
                     break;
                 }
@@ -169,6 +211,10 @@ namespace Godzilla.Core
             BuildOccluder(room, pick);
         }
 
+        /// <summary>
+        /// Depth API occlusion: activates EnvironmentDepthManager and swaps the giant onto Meta's OcclusionLit material
+        /// (the only shader that honours the depth keywords). Off = plain URP Lit again.
+        /// </summary>
         public void SetDepthApi(bool on)
         {
             if (depth == null) return;
@@ -176,9 +222,12 @@ namespace Godzilla.Core
             if (on) depth.gameObject.SetActive(true);
             depth.OcclusionShadersMode = OcclusionShadersMode.SoftOcclusion;
             depth.enabled = on;
+            DepthApiOn = on;
+            var mat = on ? giantOcclusionMaterial : giantLitMaterial;
+            if (mat != null && giantRenderers != null)
+                foreach (var r in giantRenderers)
+                    if (r != null) { var mats = r.sharedMaterials; for (int k = 0; k < mats.Length; k++) mats[k] = mat; r.sharedMaterials = mats; }
             Debug.Log($"[Window] depthApi={on}");
         }
-
-        public bool DepthApiOn => depth != null && depth.gameObject.activeSelf && depth.enabled;
     }
 }

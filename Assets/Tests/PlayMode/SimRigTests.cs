@@ -33,6 +33,20 @@ namespace Godzilla.Tests
         }
 
         [UnityTest]
+        public IEnumerator DevPanel_HasAnimationRows_AtRuntime()
+        {
+            SceneManager.LoadScene("City");
+            yield return null; yield return null;
+            var dev = Object.FindFirstObjectByType<Godzilla.UI.DevPanel>();
+            Assert.IsNotNull(dev);
+            var labels = new System.Collections.Generic.List<string>();
+            foreach (var r in dev.Rows) labels.Add(r.Label);
+            foreach (var expected in new[] { "Idle", "Walk", "Run", "Jump", "Punch", "Kick", "Roar" })
+                Assert.Contains(expected, labels, "animation test row present in the built scene");
+            Assert.IsTrue(dev.HasGiant, "giant references survive scene serialization");
+        }
+
+        [UnityTest]
         public IEnumerator ForcedWallAsWindow_UsesFacingWall_AndExcludesItFromOccluder()
         {
             SceneManager.LoadScene("City");

@@ -94,6 +94,18 @@ namespace Godzilla.Tests
         }
 
         [Test]
+        public void StickDrift_BelowDeadzone_NoNudge()
+        {
+            var d = PlacementData.Default();
+            var drift = new InputFrame { Move = new Vector2(0.1f, -0.1f), Turn = new Vector2(0.14f, 0.1f) };
+            for (int k = 0; k < 600; k++) d = PlacementLogic.Step(d, drift, Frame, dt: 1f / 60f);
+            Assert.AreEqual(0f, d.lateral, 1e-4f);
+            Assert.AreEqual(100f, d.heightMeters, 1e-4f);
+            Assert.AreEqual(0f, d.yaw, 1e-4f);
+            Assert.AreEqual(320f, d.distance, 1e-4f);
+        }
+
+        [Test]
         public void Reset_RestoresDefaultsButKeepsAnchor()
         {
             var d = PlacementData.Default();

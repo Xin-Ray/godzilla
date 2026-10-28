@@ -80,6 +80,41 @@ namespace Godzilla.Tests
         }
 
         [Test]
+        public void Load_BadValues_AreSanitized()
+        {
+            File.WriteAllText(PlacementStore.PathFor(_dir),
+                "{\"version\":1,\"anchorUuid\":\"w\",\"frameMode\":\"Window\",\"lateral\":5,\"distance\":0,\"yaw\":725,\"heightMeters\":-3,\"groundDrop\":-50,\"animTimeScale\":99,\"savedAtUtc\":\"x\"}");
+            var r = PlacementStore.Load(_dir, "w", out var d);
+            Assert.AreEqual(PlacementStore.LoadResult.Restored, r);
+            Assert.AreEqual(30f, d.heightMeters, "height clamped to 30");
+            Assert.AreEqual(50f, d.distance, "distance clamped to 50");
+            Assert.AreEqual(5f, d.yaw, 1e-3f, "yaw wrapped");
+            Assert.AreEqual(0f, d.groundDrop, "groundDrop >= 0");
+            Assert.AreEqual(1.5f, d.animTimeScale, 1e-6f, "animTimeScale clamped");
+        }
+
+        [Test]
+        public void Load_UnparsableNumbers_AreSafe()
+        {
+            File.WriteAllText(PlacementStore.PathFor(_dir),
+                "{\"version\":1,\"anchorUuid\":\"w\",\"frameMode\":\"Window\",\"lateral\":\"NaN\",\"distance\":\"NaN\",\"yaw\":0,\"heightMeters\":\"NaN\",\"groundDrop\":120,\"animTimeScale\":0.35,\"savedAtUtc\":\"x\"}");
+            PlacementStore.Load(_dir, "w", out var d);
+            // JsonUtility reads the unparsable numbers as 0; Sanitize must then clamp them into a safe range.
+            Assert.IsFalse(float.IsNaN(d.lateral));
+            Assert.GreaterOrEqual(d.distance, 50f, "never inside the room");
+            Assert.GreaterOrEqual(d.heightMeters, 30f, "never a zero/negative scale");
+        }
+
+        [Test]
+        public void Load_WrongVersion_ReturnsNone()
+        {
+            File.WriteAllText(PlacementStore.PathFor(_dir), "{\"version\":7,\"anchorUuid\":\"w\",\"heightMeters\":150}");
+            var r = PlacementStore.Load(_dir, "w", out var d);
+            Assert.AreEqual(PlacementStore.LoadResult.None, r);
+            Assert.AreEqual(100f, d.heightMeters, "defaults, not the unknown-version numbers");
+        }
+
+        [Test]
         public void LoadOrNull_MissingFile_ReturnsNull()
         {
             Assert.IsNull(PlacementStore.LoadOrNull(_dir));

@@ -30,8 +30,13 @@ namespace Godzilla.Placement
         public static LoadResult Load(string dir, string currentAnchorUuid, out PlacementData data)
         {
             var loaded = LoadOrNull(dir);
-            if (loaded == null) { data = PlacementData.Default(); return LoadResult.None; }
-            data = loaded;
+            if (loaded == null || loaded.version != PlacementData.CurrentVersion)
+            {
+                if (loaded != null) Debug.LogWarning($"[Place] placement.json version {loaded.version} unsupported; using defaults");
+                data = PlacementData.Default();
+                return LoadResult.None;
+            }
+            data = loaded.Sanitize();
             return loaded.anchorUuid == currentAnchorUuid ? LoadResult.Restored : LoadResult.NeedsPlacement;
         }
     }

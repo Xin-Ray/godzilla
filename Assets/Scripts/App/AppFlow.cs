@@ -51,7 +51,12 @@ namespace Godzilla.App
         public void Fire(AppEvent e)
         {
             var next = AppFlowLogic.Next(State, e);
-            if (next == State) return;
+            if (next == State)
+            {
+                // Recalibrate while still loading (device scan never arrived): restart the load instead of ignoring it.
+                if (e == AppEvent.Recalibrate && State == AppState.LoadingRoom) window.Calibrate();
+                return;
+            }
             Debug.Log($"[App] {State} --{e}--> {next}");
             State = next;
             OnEnter(next);

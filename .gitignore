@@ -36,7 +36,3 @@ crashlytics-build.properties
 /.superpowers/
 *_BurstDebugInformation_DoNotShip/
 *_BackUpThisFolder_ButDontShipItWithYourGame/
-
-# Interim 48 MB humanoid body copied from the avatar project; replaced by Mixamo Y Bot. Not committed.
-/Assets/Characters/Placeholder/RoomAssistantChar.fbx
-/Assets/Characters/Placeholder/RoomAssistantChar.fbx.meta

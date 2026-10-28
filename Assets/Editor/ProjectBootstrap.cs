@@ -151,6 +151,7 @@ namespace Godzilla.Editor
         public const string OccluderMatPath = "Assets/Materials/DepthOnlyOccluder.mat";
         public const string OccluderDebugMatPath = "Assets/Materials/OccluderDebug.mat";
         public const string GiantMatPath = "Assets/Materials/GiantPlaceholder.mat";
+        public const string GiantOcclusionMatPath = "Assets/Materials/GiantOcclusion.mat";
         public const string InputAssetPath = "Assets/Input/GiantControls.inputactions";
         public const string SimRoomPrefab = "Packages/com.meta.xr.mrutilitykit/Core/Rooms/Prefabs/Bedroom/Bedroom00.prefab";
 
@@ -165,8 +166,10 @@ namespace Godzilla.Editor
             var mrukGo = new GameObject("MRUK");
             var mruk = mrukGo.AddComponent<Meta.XR.MRUtilityKit.MRUK>();
             if (mruk.SceneSettings == null) mruk.SceneSettings = new Meta.XR.MRUtilityKit.MRUK.MRUKSettings();
-            mruk.SceneSettings.DataSource = Meta.XR.MRUtilityKit.MRUK.SceneDataSource.DeviceWithPrefabFallback;
-            mruk.SceneSettings.LoadSceneOnStartup = true;
+            // WindowCalibration owns the load: device scan on hardware, the sim prefab in the editor. Never let MRUK
+            // auto-fall back to a prefab on device (a phantom bedroom would occlude the real city).
+            mruk.SceneSettings.DataSource = Meta.XR.MRUtilityKit.MRUK.SceneDataSource.Device;
+            mruk.SceneSettings.LoadSceneOnStartup = false;
             mruk.SceneSettings.RoomIndex = 0;
             var simRoom = AssetDatabase.LoadAssetAtPath<GameObject>(SimRoomPrefab);
             if (simRoom == null) throw new Exception($"missing {SimRoomPrefab}");
@@ -191,7 +194,11 @@ namespace Godzilla.Editor
             var city = app.AddComponent<Godzilla.Core.CitySpaceManager>();
             var window = app.AddComponent<Godzilla.Core.WindowCalibration>();
             var debugMat = Material(OccluderDebugMatPath, "Universal Render Pipeline/Unlit", new Color(0f, 1f, 1f, 0.3f), transparent: true);
-            window.Configure(city, effect, depth, effect.MeshMaterial, debugMat, head);
+            var giantLit = AssetDatabase.LoadAssetAtPath<Material>(GiantMatPath);
+            var giantOcclusion = Material(GiantOcclusionMatPath, "EnvironmentDepth/OcclusionLit", Color.white);
+            if (giantOcclusion.HasProperty("_Color")) giantOcclusion.SetColor("_Color", new Color(0.85f, 0.85f, 0.9f));
+            window.Configure(city, effect, depth, effect.MeshMaterial, debugMat, head, simRoom,
+                character.GetComponentsInChildren<Renderer>(true), giantLit, giantOcclusion);
 
             var placement = app.AddComponent<Godzilla.Placement.CharacterPlacement>();
             placement.Configure(city, character.transform, 1.8f);

@@ -32,14 +32,23 @@ namespace Godzilla.UI
         /// <summary>Extra rows appended after the standard ones.</summary>
         public void AddRows(IEnumerable<MenuRow> rows) { _extraRows.AddRange(rows); if (_panel != null) Rebuild(); }
 
-        Godzilla.Character.GiantCharacterController _giant;
-        Godzilla.Character.GiantAnimationController _giantAnim;
+        [SerializeField] Godzilla.Character.GiantCharacterController _giant;
+        [SerializeField] Godzilla.Character.GiantAnimationController _giantAnim;
+        public bool HasGiant => _giant != null && _giantAnim != null;
+        public System.Collections.Generic.IReadOnlyList<MenuRow> Rows => _panel != null ? _panel.Rows : new List<MenuRow>();
 
-        /// <summary>Animation test buttons (spec: Idle/Walk/Run/Jump/Punch/Kick/Roar/Reset + Current State).</summary>
+        /// <summary>Edit-time wiring (SceneComposer). The rows themselves are built at runtime in Rebuild() from the serialized refs.</summary>
         public void ConfigureGiant(Godzilla.Character.GiantCharacterController giant, Godzilla.Character.GiantAnimationController giantAnim)
         {
             _giant = giant; _giantAnim = giantAnim;
-            AddRows(new[]
+            if (_panel != null) Rebuild();
+        }
+
+        /// <summary>Animation test buttons (spec: Idle/Walk/Run/Jump/Punch/Kick/Roar/Reset + Current State).</summary>
+        IEnumerable<MenuRow> GiantRows()
+        {
+            if (!HasGiant) return new MenuRow[0];
+            return new[]
             {
                 MenuRow.Text("— Animation test —"),
                 MenuRow.Button("Idle", () => _giantAnim.Apply(0f, true, Godzilla.Character.GiantAction.None, placement.Data.animTimeScale)),
@@ -50,7 +59,7 @@ namespace Godzilla.UI
                 MenuRow.Button("Kick", () => _giant.DebugAction(Godzilla.Character.GiantAction.Kick)),
                 MenuRow.Button("Roar", () => _giant.DebugAction(Godzilla.Character.GiantAction.Roar)),
                 MenuRow.Button("Reset (re-apply placement)", () => { placement.Apply(placement.Data); _giant.SyncFromPlacement(); }),
-            });
+            };
         }
 
         void Awake()
@@ -80,6 +89,7 @@ namespace Godzilla.UI
                 MenuRow.Button("Save placement", () => placement.Save()),
                 MenuRow.Text("Anim state", () => _giantAnim != null ? _giantAnim.CurrentStateName : CurrentStateText),
             };
+            rows.AddRange(GiantRows());
             rows.AddRange(_extraRows);
             _panel.SetRows("DEV", rows);
         }

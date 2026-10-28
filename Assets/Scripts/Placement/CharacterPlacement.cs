@@ -15,6 +15,8 @@ namespace Godzilla.Placement
         [SerializeField] float modelHeightMeters = 1.8f;
 
         public PlacementData Data { get; private set; } = PlacementData.Default();
+        /// <summary>Raised whenever the data was pushed to the character root (restore, placement step, DevPanel edit).</summary>
+        public event System.Action Applied;
         public float ModelHeightMeters => modelHeightMeters;
         public Transform CharacterRoot => characterRoot;
         public float ScaleFactor => Data.heightMeters / Mathf.Max(0.01f, modelHeightMeters);
@@ -55,6 +57,7 @@ namespace Godzilla.Placement
             characterRoot.position = pos;
             characterRoot.rotation = Quaternion.LookRotation(f.Forward, Vector3.up) * Quaternion.Euler(0f, d.yaw, 0f);
             characterRoot.localScale = Vector3.one * (d.heightMeters / Mathf.Max(0.01f, modelHeightMeters));
+            Applied?.Invoke();
         }
 
         public void Save()

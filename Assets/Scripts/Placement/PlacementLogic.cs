@@ -13,6 +13,7 @@ namespace Godzilla.Placement
         public const float HeightRate = 20f;               // m/s at full stick
         public const float YawRate = 45f;                  // deg/s at full stick
         public const float DistanceRate = 0.25f;           // fraction of distance per second at full stick
+        public const float StickDeadzone = 0.15f;          // thumbstick drift must not creep the saved placement
 
         public static PlacementData Step(PlacementData d, InputFrame i, CityFrame f, float dt)
         {
@@ -31,16 +32,21 @@ namespace Godzilla.Placement
                 d.distance = dist;
             }
 
-            d.lateral += i.Move.x * LateralRatePerDistance * d.distance * dt;
-            d.heightMeters += i.Move.y * HeightRate * dt;
-            d.yaw += i.Turn.x * YawRate * dt;
-            d.distance += i.Turn.y * DistanceRate * d.distance * dt;
+            var move = Deadzone(i.Move);
+            var turn = Deadzone(i.Turn);
+            d.lateral += move.x * LateralRatePerDistance * d.distance * dt;
+            d.heightMeters += move.y * HeightRate * dt;
+            d.yaw += turn.x * YawRate * dt;
+            d.distance += turn.y * DistanceRate * d.distance * dt;
 
             d.heightMeters = Mathf.Clamp(d.heightMeters, MinHeight, MaxHeight);
             d.distance = Mathf.Clamp(d.distance, MinDistance, MaxDistance);
             d.yaw = Mathf.Repeat(d.yaw, 360f);
             return d;
         }
+
+        /// <summary>Per-axis deadzone: each placement axis is an independent control (lateral/height, yaw/distance).</summary>
+        static Vector2 Deadzone(Vector2 v) => new Vector2(Mathf.Abs(v.x) < StickDeadzone ? 0f : v.x, Mathf.Abs(v.y) < StickDeadzone ? 0f : v.y);
 
         public static bool TryRayToGround(Ray r, float groundY, out Vector3 hit)
         {

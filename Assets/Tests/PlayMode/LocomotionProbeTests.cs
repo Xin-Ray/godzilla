@@ -115,6 +115,18 @@ namespace Godzilla.Tests
         }
 
         [UnityTest]
+        public IEnumerator PlacementEdit_DuringPlay_IsNotRevertedByLocomotion()
+        {
+            yield return Boot();
+            var d = _placement.Data; d.distance = 500f; d.lateral = 40f; d.yaw = 90f;
+            _placement.Set(d); // what the DevPanel sliders do
+            var expected = _placement.CharacterRoot.position;
+            yield return null; yield return null; yield return null; // Play input keeps running (InputOverride = idle)
+            Assert.Less(Vector3.Distance(expected, _placement.CharacterRoot.position), 0.01f, "controller adopted the edited placement");
+            Assert.AreEqual(0f, Mathf.DeltaAngle(_placement.CharacterRoot.eulerAngles.y, _giant.State.Yaw), 1f, "controller yaw matches the edited placement");
+        }
+
+        [UnityTest]
         public IEnumerator Jump_And_Actions_Sequences()
         {
             yield return Boot();
